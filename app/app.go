@@ -118,13 +118,17 @@ func Start() {
 			if compDist < intprot.Items[i].Dist {
 				//fmt.Println(intprot.Items[i].Dist)
 				compDist = intprot.Items[i].Dist
-
+				//fmt.Println(compDist)
 			}
 
 		}
 
-		for i := 0; i < len(intprot.Items); i++ { // Acá habiendo guardado la distancia previamente. Unicamente busca aquellas IPs en "intprot.Items" que tenga esa distancia, y se guarda la posición "NUM" de la que tenga mas Invoc
+		for i := 0; i < len(intprot.Items); i++ { // Acá habiendo guardado la distancia previamente, únicamente busca aquellas IPs en "intprot.Items" que tenga esa distancia, y se guarda la posición "NUM" de la que tenga mas Invoc
 			if compDist == intprot.Items[i].Dist {
+				fmt.Println(compDist)
+				Num = i //Esta asignación arregla un error mio que, si una IP cercana hacia 2 o mas requests/invoc, y luego, 2 IPs mas lejanas hacian un solo request/invoc,
+				//mostraba la cercana como lejana. Ejemplo: 191.1.1.1 -> 191.1.1.1 -> 112.1.1.1 -> 240f:80ff:4000::/40
+				//En vez de mostrar las ultimas (Las de China) como lejanas, va a mostrar la IP de Brazil como lejana, si no se corrige el error.
 				if compInvoc < intprot.Items[i].Invoc {
 					compInvoc = intprot.Items[i].Invoc
 					Num = i
@@ -243,7 +247,7 @@ func FuncAWS(ipGET string) (x bool) {
 			//ip := strings.Split(s, "/")[0] //Lo que hace es sacarle el /32 a todas las direcciones IP del JSON AWS. Porque sino la pagina web que sigue no las lee
 			//fmt.Println(i)
 			xy = 1
-
+			cont = 1 //Agrego esto para que, en caso de encontrar la IP en la primera parte del archivo, evita leer la 2da que corresponde a las IPv6
 		}
 
 	}
@@ -312,7 +316,7 @@ func FuncDist(nameGET string) (x int) {
 		log.Fatal(readErr)
 	}
 
-	distancia1 := distancia{} //Obtiene la distancia del archivo JSON que se habre y se lee en de la pagina www.distancia.co
+	distancia1 := distancia{} //Obtiene la distancia del archivo JSON que se abre y se lee en de la pagina www.distancia.co
 	jsonErr := json.Unmarshal(body, &distancia1)
 	if jsonErr != nil {
 		log.Fatal(jsonErr)
@@ -333,10 +337,6 @@ func FuncDist(nameGET string) (x int) {
 	//Devuelve la info de la IPs correspondientes
 }
 
-//copiar aca todas las funciones para así poder correr los tests unitarios y no complicarme la vida
-//
-//Testing
-
 func FuncList(intprotGET IP, ipGET string, nameGET string, distanciaGET int) []IPSaved {
 
 	//Agarra los valores y los guarda
@@ -349,9 +349,9 @@ func FuncList(intprotGET IP, ipGET string, nameGET string, distanciaGET int) []I
 	if length == 0 {
 		intprotGET.AddItem(itemToAdd)
 		fmt.Println("Lo sumé de una")
-	} else { //Hasta acá todo bien
+	} else {
 		mod := 0
-		for i := 0; i < length; i = i + 1 { //Porque no pongo len(intprot.Items) directamente? Porque si se va modificando sobre la marcha, va a aumentar el contador mientras el For esta funcionando. Por eso se lo asigno a una variable antes para que quede estatico
+		for i := 0; i < length; i = i + 1 { //Porque no pongo len(intprot.Items) directamente? Porque si se va modificando sobre la marcha, va a aumentar el contador mientras el For esta funcionando, generando un loop. Por eso se lo asigno a una variable antes para que quede estatico
 			if itemToAdd.IPpart == intprotGET.Items[i].IPpart {
 				intprotGET.Items[i].Invoc++
 				fmt.Println("Sume un invoc")
